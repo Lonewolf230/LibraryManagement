@@ -142,27 +142,6 @@ public boolean addBook(Book book) throws SQLException {
         return "Unknown";
     }
 
-    public void deleteBook(String isbn) throws SQLException {
-        String checkSql = "SELECT COUNT(*) FROM books WHERE isbn=?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
-
-            checkStmt.setString(1, isbn);
-            ResultSet rs = checkStmt.executeQuery();
-            if (rs.next() && rs.getInt(1) == 0) {
-                throw new SQLException("Book with ISBN " + isbn + " does not exist.");
-            }
-        }
-
-        String sql = "DELETE FROM books WHERE isbn=?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setString(1, isbn);
-            pstmt.executeUpdate();
-        }
-    }
-
 //    public void deleteBook(String isbn) throws SQLException {
 //        String checkSql = "SELECT COUNT(*) FROM books WHERE isbn=?";
 //        try (Connection conn = DatabaseConnection.getConnection();
@@ -175,7 +154,7 @@ public boolean addBook(Book book) throws SQLException {
 //            }
 //        }
 //
-//        String sql = "MODIFY books set is_deleted=1 WHERE isbn=?";
+//        String sql = "DELETE FROM books WHERE isbn=?";
 //        try (Connection conn = DatabaseConnection.getConnection();
 //             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 //
@@ -183,6 +162,27 @@ public boolean addBook(Book book) throws SQLException {
 //            pstmt.executeUpdate();
 //        }
 //    }
+
+    public void deleteBook(String isbn) throws SQLException {
+        String checkSql = "SELECT COUNT(*) FROM books WHERE isbn=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setString(1, isbn);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) == 0) {
+                throw new SQLException("Book with ISBN " + isbn + " does not exist.");
+            }
+        }
+
+        String sql = "MODIFY books set is_deleted=1 WHERE isbn=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, isbn);
+            pstmt.executeUpdate();
+        }
+    }
 
 
 //    public List<Book> getAvailableBooks() throws SQLException {

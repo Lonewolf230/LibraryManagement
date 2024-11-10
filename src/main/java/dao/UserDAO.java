@@ -51,24 +51,24 @@ public class UserDAO {
         return false;
     }
 
-    public void deleteUser(int userId) throws SQLException {
-        String sql = "DELETE FROM users WHERE id = ?";
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
-            pstmt.setInt(1, userId);
-            int rowsAffected = pstmt.executeUpdate();
-        }
-    }
-//public void deleteUser(int userId) throws SQLException {
-//    String sql = "MODIFY users SET is_deleted=1 WHERE id = ?";
-//    try (Connection conn = DatabaseConnection.getConnection();
-//         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//    public void deleteUser(int userId) throws SQLException {
+//        String sql = "DELETE FROM users WHERE id = ?";
+//        try (Connection conn = DatabaseConnection.getConnection();
+//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 //
-//        pstmt.setInt(1, userId);
-//        int rowsAffected = pstmt.executeUpdate();
+//            pstmt.setInt(1, userId);
+//            int rowsAffected = pstmt.executeUpdate();
+//        }
 //    }
-//}
+public void deleteUser(int userId) throws SQLException {
+    String sql = "MODIFY users SET is_deleted=1 WHERE id = ?";
+    try (Connection conn = DatabaseConnection.getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setInt(1, userId);
+        int rowsAffected = pstmt.executeUpdate();
+    }
+}
 
 
 
