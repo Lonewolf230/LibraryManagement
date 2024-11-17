@@ -123,19 +123,6 @@ public class UserManagementView extends VBox {
         }
     }
 
-//    private void deleteUser() {
-//        try {
-//            int id = Integer.parseInt(idField.getText());
-//            userDAO.deleteUser(id);
-//            showSuccess("User Deleted Successfully!");
-//            clearForm();
-//            refreshTable();
-//        } catch (SQLException e) {
-//            showError("Error deleting user: " + e.getMessage());
-//        } catch (NumberFormatException e) {
-//            showError("Please enter a valid ID!");
-//        }
-//    }
 
     public void deleteUser() {
         int userId = Integer.parseInt(idField.getText()); // assuming a selected user ID is in a text field

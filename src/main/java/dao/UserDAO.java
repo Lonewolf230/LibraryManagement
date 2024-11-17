@@ -7,7 +7,7 @@ import java.util.List;
 
 public class UserDAO {
     public void addUser(User user) throws SQLException {
-        String sql = "INSERT INTO users (name, email, phone, fines) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO users (name, email, phone, fines,is_deleted) VALUES (?, ?, ?, ?,0)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -22,7 +22,7 @@ public class UserDAO {
     }
 
     public void updateUser(User user) throws SQLException {
-        String sql = "UPDATE users SET name=?, email=?, phone=?, fines=? WHERE id=?";
+        String sql = "UPDATE users SET name=?, email=?, phone=?, fines=? WHERE id=? AND (is_deleted = 0 OR is_deleted IS NULL)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -38,7 +38,7 @@ public class UserDAO {
     }
 
     public boolean hasOutstandingFines(int userId) throws SQLException {
-        String sql = "SELECT fines FROM users WHERE id = ?";
+        String sql = "SELECT fines FROM users WHERE id = ? AND (is_deleted = 0 OR is_deleted IS NULL)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -51,30 +51,35 @@ public class UserDAO {
         return false;
     }
 
-//    public void deleteUser(int userId) throws SQLException {
-//        String sql = "DELETE FROM users WHERE id = ?";
-//        try (Connection conn = DatabaseConnection.getConnection();
-//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//
-//            pstmt.setInt(1, userId);
-//            int rowsAffected = pstmt.executeUpdate();
-//        }
-//    }
-public void deleteUser(int userId) throws SQLException {
-    String sql = "MODIFY users SET is_deleted=1 WHERE id = ?";
-    try (Connection conn = DatabaseConnection.getConnection();
-         PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        pstmt.setInt(1, userId);
-        int rowsAffected = pstmt.executeUpdate();
+    public void deleteUser(int userId) throws SQLException {
+        // First check if user exists and is not already deleted
+        String checkSql = "SELECT COUNT(*) FROM users WHERE id = ? AND (is_deleted = 0 OR is_deleted IS NULL)";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setInt(1, userId);
+            ResultSet rs = checkStmt.executeQuery();
+            if (rs.next() && rs.getInt(1) == 0) {
+                throw new SQLException("User not found or already deleted");
+            }
+        }
+
+        // If user exists and is not deleted, proceed with soft delete
+        String sql = "UPDATE users SET is_deleted = 1 WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
+        }
     }
-}
 
 
 
     public List<User> getAllUsers() throws SQLException {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users";
+        String sql = "SELECT * FROM users WHERE is_deleted = 0 OR is_deleted IS NULL";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement stmt = conn.createStatement();
@@ -94,7 +99,7 @@ public void deleteUser(int userId) throws SQLException {
         return users;
     }
     public User getUserById(int userId) throws SQLException {
-        String sql = "SELECT * FROM users WHERE id = ?";
+        String sql = "SELECT * FROM users WHERE id = ? AND (is_deleted = 0 OR is_deleted IS NULL)";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 

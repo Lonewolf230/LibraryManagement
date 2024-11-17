@@ -54,10 +54,16 @@ public class BookManagementView extends VBox {
         buttonBox.getChildren().addAll(addButton, updateButton, deleteButton, refreshButton);
 
 
-        addButton.setOnAction(e -> addBook());
+        addButton.setOnAction(e->{
+            addBook();
+            refreshDonorComboBox();
+        });
         updateButton.setOnAction(e->updateBook());
         deleteButton.setOnAction(e->deleteBook());
-        refreshButton.setOnAction(e->refreshTable());
+        refreshButton.setOnAction(e->{
+                refreshTable();
+                refreshDonorComboBox();
+        });
 
         // Setup table
         TableColumn<Book, String> titleCol = new TableColumn<>("Title");
@@ -97,7 +103,7 @@ public class BookManagementView extends VBox {
         bookTable.getColumns().addAll(titleCol, authorCol,isbnCol,statusCol,donorNameCol);
 
         getChildren().addAll(form,buttonBox, bookTable);
-        populateDonorComboBox();
+        setupDonorComboBox();
         refreshTable();
     }
 
@@ -108,17 +114,6 @@ public class BookManagementView extends VBox {
         donorComboBox.setValue(userDAO.getUserById(book.getDonatedBy())); // Set selected donor by ID
     }
 
-//    private void addBook() {
-//        try {
-//            Book book = new Book(0, titleField.getText(), authorField.getText(),
-//                    isbnField.getText(), donorField.getText());
-//            bookDAO.addBook(book);
-//            refreshTable();
-//            clearForm();
-//        } catch (Exception e) {
-//            showError("Error adding book: " + e.getMessage());
-//        }
-//    }
 
     private void populateDonorComboBox() {
         try {
@@ -141,22 +136,23 @@ public class BookManagementView extends VBox {
         }
     }
 
-//    public void addBook() {
-//        Book newBook = new Book(0,titleField.getText(), authorField.getText(), isbnField.getText(), donorField.getText());
-//
-//        try {
-//            boolean success = bookDAO.addBook(newBook);
-//            if (success) {
-//                showSuccess("Book added successfully.");
-//                refreshTable();
-//                clearForm();
-//            } else {
-//                showError("Failed to add book.");
-//            }
-//        } catch (SQLException e) {
-//            showError("Error adding book: " + e.getMessage());
-//        }
-//    }
+    private void setupDonorComboBox() {
+        // Set up the converter once
+        donorComboBox.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(User user) {
+                return user != null ? user.getName() : "";
+            }
+
+            @Override
+            public User fromString(String name) {
+                return donorComboBox.getItems().stream()
+                        .filter(user -> user.getName().equals(name))
+                        .findFirst().orElse(null);
+            }
+        });
+        refreshDonorComboBox(); // Initial population
+    }
 
 
     public void addBook() {
@@ -182,55 +178,6 @@ public class BookManagementView extends VBox {
         }
     }
 
-
-//    private void updateBook() {
-//        Book selectedBook = bookTable.getSelectionModel().getSelectedItem();
-//        if (selectedBook == null) {
-//            showError("Please select a book to update.");
-//            return;
-//        }
-//        try {
-//            // Retrieve the updated book details
-//            Book updatedBook = new Book(selectedBook.getId(), titleField.getText(), authorField.getText(),
-//                    isbnField.getText(), donorField.getText());
-//            bookDAO.updateBook(updatedBook);
-//            refreshTable();
-//            clearForm();
-//            showSuccess("Book updated successfully.");
-//        } catch (Exception e) {
-//            showError("Error updating book: " + e.getMessage());
-//        }
-//    }
-//private void updateBook() {
-//    Book selectedBook = bookTable.getSelectionModel().getSelectedItem();
-//    if (selectedBook == null) {
-//        showError("Please select a book to update.");
-//        return;
-//    }
-//    try {
-//        // Retrieve the updated book details
-//        int donorId; // Declare donorId as int
-//        try {
-//            // Parse donorField text to int
-//            donorId = Integer.parseInt(donorField.getText());
-//        } catch (NumberFormatException e) {
-//            showError("Invalid donor ID. Please enter a valid number.");
-//            return; // Exit the method if parsing fails
-//        }
-//
-//        // Create an updated Book object with the donorId
-//        Book updatedBook = new Book(selectedBook.getId(), titleField.getText(), authorField.getText(),
-//                isbnField.getText(), donorId); // Use donorId instead of donorField text
-//
-//        // Update the book in the database
-//        bookDAO.updateBook(updatedBook);
-//        refreshTable();
-//        clearForm();
-//        showSuccess("Book updated successfully.");
-//    } catch (Exception e) {
-//        showError("Error updating book: " + e.getMessage());
-//    }
-//}
 
     private void updateBook() {
         Book selectedBook = bookTable.getSelectionModel().getSelectedItem();
@@ -283,6 +230,27 @@ public class BookManagementView extends VBox {
             bookTable.getItems().setAll(bookDAO.getAllBooks());
         } catch (Exception e) {
             showError("Error loading books: " + e.getMessage());
+        }
+    }
+
+    private void refreshDonorComboBox() {
+        try {
+            // Store the currently selected user
+            User selectedUser = donorComboBox.getValue();
+
+            // Clear and reload all users
+            donorComboBox.getItems().clear();
+            donorComboBox.getItems().addAll(userDAO.getAllUsers());
+
+            // Restore the selection if the user still exists
+            if (selectedUser != null) {
+                donorComboBox.getItems().stream()
+                        .filter(user -> user.getId() == selectedUser.getId())
+                        .findFirst()
+                        .ifPresent(user -> donorComboBox.setValue(user));
+            }
+        } catch (SQLException e) {
+            showError("Error loading users: " + e.getMessage());
         }
     }
 

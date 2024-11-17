@@ -10,6 +10,7 @@ public class Book {
     private int donatedBy;
     private boolean isAvailable;
     private LocalDate donationDate;
+    private boolean isDeleted;
 
     // Constructor
     public Book(int id, String title, String author, String isbn, int donatedBy) {
@@ -20,6 +21,7 @@ public class Book {
         this.donatedBy = donatedBy;
         this.isAvailable = true;
         this.donationDate = LocalDate.now();
+        this.isDeleted=false;
     }
 
     // Getters and setters
@@ -37,7 +39,12 @@ public class Book {
     public void setAvailable(boolean available) { isAvailable = available; }
     public LocalDate getDonationDate() { return donationDate; }
     public void setDonationDate(LocalDate donationDate) { this.donationDate = donationDate; }
-
+    public boolean isDeleted(){
+        return isDeleted;
+    }
+    public void setDeleted(boolean deleted){
+        isDeleted=deleted;
+    }
 
 
     public String toString() {
